@@ -1,0 +1,19 @@
+{
+  "settings": "Settings",
+  "select_theme": "Select Theme",
+  "select_language": "Select Language",
+  "enable_notifications": "Enable Notifications",
+  "email": "Email",
+  "password": "Password",
+  "forgot_password": "Forgot Password?",
+  "login": "Login",
+  "signup": "Sign Up",
+  "dont_have_account": "Don't have an account? Sign Up",
+  "already_have_account": "Already have an account? Sign In",
+  "send": "Send",
+  "first_name": "First Name",
+  "last_name": "Last Name",
+  "confirm_password": "Confirm Password",
+  "dob": "Date of Birth",
+  "sign_in": "Sign In"
+}

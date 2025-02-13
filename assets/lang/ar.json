@@ -1,0 +1,19 @@
+{
+  "settings": "الإعدادات",
+  "select_theme": "اختر السمة",
+  "select_language": "اختر اللغة",
+  "enable_notifications": "تمكين الإشعارات",
+  "email": "البريد الإلكتروني",
+  "password": "كلمة المرور",
+  "forgot_password": "هل نسيت كلمة المرور؟",
+  "login": "تسجيل الدخول",
+  "signup": "إنشاء حساب",
+  "dont_have_account": "ليس لديك حساب؟ سجل الآن",
+  "already_have_account": "لديك حساب؟ سجل الدخول",
+  "send": "إرسال",
+  "first_name": "الاسم الأول",
+  "last_name": "الاسم الأخير",
+  "confirm_password": "تأكيد كلمة المرور",
+  "dob": "تاريخ الميلاد",
+  "sign_in": "تسجيل الدخول"
+}
