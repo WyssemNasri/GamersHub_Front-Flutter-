@@ -2,9 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../Widgets/CustomTextField.dart';
+import '../Widgets/DatePickerField.dart';
 import '../Widgets/GardientButton.dart';
-import '../languages/LanguageNotifier.dart';
+import '../models/signupModel.dart';
+import '../services/authService.dart';
+import '../FontTheme/FontNotifier.dart';
 import '../languages/app_localizations.dart';
+import 'loginScreen.dart';
 
 class Signup extends StatefulWidget {
   const Signup({super.key});
@@ -14,144 +18,175 @@ class Signup extends StatefulWidget {
 }
 
 class _SignupState extends State<Signup> {
-  final TextEditingController _firstNameController = TextEditingController();
-  final TextEditingController _lastNameController = TextEditingController();
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
-  final TextEditingController _dateController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+  final List<TextEditingController> controllers = List.generate(7, (_) => TextEditingController());
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
 
-  Future<void> _selectDate(BuildContext context) async {
-    DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(1900),
-      lastDate: DateTime.now(),
-      builder: (context, child) {
-        return Theme(
-          data: ThemeData.light().copyWith(
-            primaryColor: Theme.of(context).primaryColor,
-            hintColor: Theme.of(context).primaryColor,
-            colorScheme: ColorScheme.light(primary: Theme.of(context).primaryColor),
-            buttonTheme: ButtonThemeData(textTheme: ButtonTextTheme.primary),
-          ),
-          child: child!,
+  Future<void> _signup(SignupModel signupModel) async {
+    try {
+      await Future.delayed(Duration(seconds: 1));
+      int statusCode = 200;
+
+      if (statusCode == 200) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => Loginscreen()),
         );
-      },
-    );
-    if (picked != null) {
-      setState(() {
-        _dateController.text = DateFormat('yyyy-MM-dd').format(picked);
-      });
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(AppLocalizations.of(context).translate("error_occurred"))),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppLocalizations.of(context).translate("error_occurred"))),
+      );
     }
   }
+
+
+  bool _validateForm() => _formKey.currentState?.validate() ?? false;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final languageProvider = Provider.of<LanguageNotifier>(context);
-    final height = MediaQuery.of(context).size.height;
     final width = MediaQuery.of(context).size.width;
 
-    return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
-      appBar: AppBar(
-        title: Text(AppLocalizations.of(context).translate("signup")),
-        leading: IconButton(
-          onPressed: () => Navigator.pop(context),
-          icon: Icon(Icons.arrow_back, color: theme.iconTheme.color),
-        ),
-        backgroundColor: theme.appBarTheme.backgroundColor,
-      ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: width * 0.05),
-          child: Column(
+    return Consumer<FontNotifier>(
+      builder: (context, fontNotifier, child) {
+        return Scaffold(
+          backgroundColor: theme.scaffoldBackgroundColor,
+          appBar: AppBar(
+            title: Text(
+              AppLocalizations.of(context).translate("signup"),
+              style: TextStyle(fontFamily: fontNotifier.fontFamily),
+            ),
+            leading: IconButton(
+              onPressed: () => Navigator.pop(context),
+              icon: const Icon(Icons.arrow_back),
+            ),
+          ),
+          body: ListView(
+            padding: EdgeInsets.symmetric(horizontal: width * 0.05),
             children: [
-              ClipOval(
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
                 child: Image.asset(
                   "assets/images/signup.jpg",
-                  height: height * 0.34,
-                  width: width ,
-                  fit: BoxFit.fill,
+                  height: 180,
+                  fit: BoxFit.cover,
                 ),
               ),
-              SizedBox(height: height * 0.04),
-              CustomTextField(
-                labelText: AppLocalizations.of(context).translate("first_name"),
-                prefixIcon: Icon(Icons.person, color: theme.iconTheme.color),
-                controller: _firstNameController,
-              ),
-              SizedBox(height: height * 0.04),
-              CustomTextField(
-                labelText: AppLocalizations.of(context).translate("last_name"),
-                prefixIcon: Icon(Icons.person, color: theme.iconTheme.color),
-                controller: _lastNameController,
-              ),
-              SizedBox(height: height * 0.04),
-              CustomTextField(
-                labelText: AppLocalizations.of(context).translate("email"),
-                prefixIcon: Icon(Icons.email, color: theme.iconTheme.color),
-                controller: _emailController,
-                keyboardType: TextInputType.emailAddress,
-              ),
-              SizedBox(height: height * 0.04),
-              CustomTextField(
-                labelText: AppLocalizations.of(context).translate("password"),
-                prefixIcon: Icon(Icons.lock, color: theme.iconTheme.color),
-                controller: _passwordController,
-                obscureText: _obscurePassword,
-              ),
-              SizedBox(height: height * 0.04),
-              CustomTextField(
-                labelText: AppLocalizations.of(context).translate("confirm_password"),
-                prefixIcon: Icon(Icons.lock, color: theme.iconTheme.color),
-                controller: _confirmPasswordController,
-                obscureText: _obscureConfirmPassword,
-              ),
-              SizedBox(height: height * 0.04),
-              TextField(
-                controller: _dateController,
-                style: TextStyle(color: theme.textTheme.bodyLarge?.color),
-                readOnly: true,
-                decoration: InputDecoration(
-                  labelText: AppLocalizations.of(context).translate("dob"),
-                  labelStyle: TextStyle(color: theme.textTheme.bodyLarge?.color),
-                  prefixIcon: Icon(Icons.calendar_today, color: theme.iconTheme.color),
-                  suffixIcon: IconButton(
-                    icon: Icon(Icons.calendar_today, color: theme.iconTheme.color),
-                    onPressed: () => _selectDate(context),
-                  ),
-                  focusedBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: theme.primaryColor),
-                  ),
+              const SizedBox(height: 16),
+              Form(
+                key: _formKey,
+                child: Column(
+                  children: [
+                    CustomTextField(
+                      labelText: AppLocalizations.of(context).translate("first_name"),
+                      prefixIcon: const Icon(Icons.person),
+                      controller: controllers[0],
+                      validator: (value) => value!.isEmpty ? AppLocalizations.of(context).translate("enter_first_name") : null,
+                      fontFamily: fontNotifier.fontFamily,
+                    ),
+                    const SizedBox(height: 16),
+                    CustomTextField(
+                      labelText: AppLocalizations.of(context).translate("last_name"),
+                      prefixIcon: const Icon(Icons.person),
+                      controller: controllers[1],
+                      validator: (value) => value!.isEmpty ? AppLocalizations.of(context).translate("enter_last_name") : null,
+                      fontFamily: fontNotifier.fontFamily,
+                    ),
+                    const SizedBox(height: 16),
+                    CustomTextField(
+                      labelText: AppLocalizations.of(context).translate("email"),
+                      prefixIcon: const Icon(Icons.email),
+                      controller: controllers[2],
+                      keyboardType: TextInputType.emailAddress,
+                      validator: (value) => value!.isEmpty ? AppLocalizations.of(context).translate("enter_email") : null,
+                      fontFamily: fontNotifier.fontFamily,
+                    ),
+                    const SizedBox(height: 16),
+                    CustomTextField(
+                      labelText: AppLocalizations.of(context).translate("password"),
+                      prefixIcon: const Icon(Icons.lock),
+                      controller: controllers[3],
+                      obscureText: _obscurePassword,
+                      validator: (value) => value!.isEmpty ? AppLocalizations.of(context).translate("enter_password") : null,
+                      fontFamily: fontNotifier.fontFamily,
+                    ),
+                    const SizedBox(height: 16),
+                    CustomTextField(
+                      labelText: AppLocalizations.of(context).translate("confirm_password"),
+                      prefixIcon: const Icon(Icons.lock),
+                      controller: controllers[4],
+                      obscureText: _obscureConfirmPassword,
+                      validator: (value) => value != controllers[3].text ? AppLocalizations.of(context).translate("passwords_not_match") : null,
+                      fontFamily: fontNotifier.fontFamily,
+                    ),
+                    const SizedBox(height: 16),
+                    CustomTextField(
+                      labelText: AppLocalizations.of(context).translate("phone_number"),
+                      prefixIcon: const Icon(Icons.phone),
+                      controller: controllers[6],
+                      keyboardType: TextInputType.phone,
+                      validator: (value) => value!.isEmpty ? AppLocalizations.of(context).translate("enter_phone_number") : null,
+                      fontFamily: fontNotifier.fontFamily,
+                    ),
+                    const SizedBox(height: 16),
+                    DatePickerField(
+                      controller: controllers[5],
+                      labelText: AppLocalizations.of(context).translate("date_of_birth"),
+                      fontFamily: fontNotifier.fontFamily, prefixIcon: Icon(Icons.date_range),
+                    ),
+
+                    const SizedBox(height: 16),
+                    GradientButton(
+                      text: AppLocalizations.of(context).translate("signup"),
+                      icon: const Icon(Icons.add),
+                      onPressed: () {
+                        if (_validateForm()) {
+                          SignupModel signupModel = SignupModel(
+                            email: controllers[2].text.trim(),
+                            password: controllers[3].text.trim(),
+                            firstName: controllers[0].text.trim(),
+                            lastName: controllers[1].text.trim(),
+                            phoneNumber: controllers[6].text.trim(),
+                            dayOfBirth: DateFormat('yyyy-MM-dd').parse(controllers[5].text.trim()),
+                          );
+                          _signup(signupModel);
+                        }
+                      },
+                      fontFamily: fontNotifier.fontFamily,
+                    ),
+                    const SizedBox(height: 20),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          AppLocalizations.of(context).translate("already_have_account"),
+                          style: TextStyle(fontFamily: fontNotifier.fontFamily , fontSize: 10),
+                        ),
+                        TextButton(
+                          onPressed: () => Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(builder: (context) => Loginscreen()),
+                          ),
+                          child: Text(
+                            AppLocalizations.of(context).translate("signin"),
+                            style: TextStyle(fontWeight: FontWeight.bold, fontFamily: fontNotifier.fontFamily),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
-              ),
-              SizedBox(height: height * 0.04),
-              GradientButton(
-                text: AppLocalizations.of(context).translate("signup"),
-                icon: Icon(Icons.add, color: theme.iconTheme.color),
-                onPressed: () {},
-              ),
-              SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(AppLocalizations.of(context).translate("already_have_account"),
-                      style: TextStyle(color: theme.textTheme.bodyLarge?.color)),
-                  TextButton(
-                    onPressed: () {},
-                    child: Text(AppLocalizations.of(context).translate("sign in"),
-                        style: TextStyle(color: theme.primaryColor, fontWeight: FontWeight.bold)),
-                  ),
-                ],
               ),
             ],
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

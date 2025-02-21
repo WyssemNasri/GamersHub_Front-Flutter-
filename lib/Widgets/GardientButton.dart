@@ -4,13 +4,15 @@ class GradientButton extends StatelessWidget {
   final String text;
   final Icon icon;
   final VoidCallback onPressed;
+  final String? fontFamily;
 
   const GradientButton({
-    super.key,
+    Key? key,
     required this.text,
     required this.icon,
     required this.onPressed,
-  });
+    this.fontFamily,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -24,17 +26,17 @@ class GradientButton extends StatelessWidget {
         height: 50,
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [theme.primaryColor, theme.colorScheme.secondary ?? theme.primaryColor], // Gradient using primaryColor and accentColor from theme
+            colors: [theme.primaryColor, theme.colorScheme.secondary ?? theme.primaryColor],
             begin: Alignment.centerLeft,
             end: Alignment.centerRight,
           ),
           borderRadius: BorderRadius.circular(10),
           boxShadow: [
             BoxShadow(
-              color: theme.primaryColor.withOpacity(0.3), // Box shadow based on primary color
+              color: theme.primaryColor.withOpacity(0.3),
               spreadRadius: 2,
               blurRadius: 5,
-              offset: Offset(0, 3),
+              offset: const Offset(0, 3),
             ),
           ],
         ),
@@ -50,18 +52,21 @@ class GradientButton extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                icon.icon, // Use the passed icon
-                color: Colors.white, // Icon color remains white
-              ),
-              SizedBox(width: 8),
+
+              const SizedBox(width: 8),
               Text(
                 text,
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
+                  fontFamily: fontFamily,
                 ),
+              ),
+              SizedBox(width: width*0.05,),
+              Icon(
+                icon.icon,
+                color: Colors.white,
               ),
             ],
           ),

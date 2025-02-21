@@ -1,49 +1,58 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:gamershub/Views/SettingsPage.dart';
-import 'package:gamershub/themes/ThemeNotifier.dart';
+import 'package:gamershub/Widgets/CustomFloatingActionButton.dart';
+import 'package:gamershub/services/SessionManager.dart';
+import '../Widgets/StatusInputWidget.dart';
+import 'Loginscreen.dart';
+import '../Widgets/CustomAppBar.dart';
+import '../Widgets/CustomDrawer.dart';
 
-class DashboardPage extends StatelessWidget {
+class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return Consumer<ThemeNotifier>(
-      builder: (context, themeNotifier, child) {
-        final theme = themeNotifier.currentTheme;
+  _DashboardPageState createState() => _DashboardPageState();
+}
 
-        return Scaffold(
-          appBar: AppBar(
-            backgroundColor: theme.appBarTheme.backgroundColor, // Theme appBar background
-            foregroundColor: theme.appBarTheme.foregroundColor, // Theme appBar text/icon color
-            actions: [
-              IconButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const SettingsPage()),
-                  );
-                },
-                icon: const Icon(Icons.settings),
-                color: theme.iconTheme.color, // Icon color from theme
-              ),
-            ],
-          ),
-          body: Container(
-            color: theme.scaffoldBackgroundColor, // Background color of the body
-            child: Center(
-              child: Text(
-                'Dashboard Page',
-                style: TextStyle(
-                  color: theme.textTheme.bodyMedium?.color, // Text color from theme
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+class _DashboardPageState extends State<DashboardPage> {
+  String _postedStatus = '';
+
+  void _logout() async {
+    await SessionManager.destroySession();
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const Loginscreen()),
+    );
+  }
+
+  void _handlePostedStatus(String status) {
+    setState(() {
+      _postedStatus = status;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: CustomAppBar(),
+      drawer: CustomDrawer(
+        userName: 'wissem nasri',
+        userEmail: 'nasriwissam6@gmail.com',
+        userProfileImage: '',
+        onLogout: _logout,
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            StatusInputWidget(
+              onStatusPosted: _handlePostedStatus, // Pass the callback
             ),
-          ),
-        );
-      },
+
+          ],
+        ),
+      ),
+      floatingActionButton: CustomFloatingActionButton(),
     );
   }
 }

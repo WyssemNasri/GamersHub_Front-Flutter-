@@ -3,7 +3,7 @@ import 'package:gamershub/Views/loginScreen.dart';
 import 'package:gamershub/Views/singup.dart';
 import 'package:provider/provider.dart';
 import '../languages/app_localizations.dart';
-import '../FontTheme/FontNotifier.dart';  // Importer FontNotifier
+import '../FontTheme/FontNotifier.dart';
 
 class Homescreen extends StatefulWidget {
   @override
@@ -19,7 +19,7 @@ class _HomescreenState extends State<Homescreen> with SingleTickerProviderStateM
   void initState() {
     super.initState();
     _controller = AnimationController(
-      duration: const Duration(seconds: 2),
+      duration: const Duration(seconds: 1),
       vsync: this,
     );
 
@@ -45,138 +45,151 @@ class _HomescreenState extends State<Homescreen> with SingleTickerProviderStateM
     final theme = Theme.of(context);
     final bool isDark = theme.brightness == Brightness.dark;
 
-    // Utiliser Consumer pour écouter les changements de police
-    return Consumer<FontNotifier>(
-      builder: (context, fontNotifier, child) {
-        return Scaffold(
-          backgroundColor: theme.scaffoldBackgroundColor,
-          body: ListView(
-            children: [
-              FadeTransition(
-                opacity: _fadeAnimation,
-                child: ScaleTransition(
-                  scale: _scaleAnimation,
+    return Scaffold(
+      backgroundColor: theme.scaffoldBackgroundColor,
+      body: ListView(
+        children: [
+          AnimatedBuilder(
+            animation: _controller,
+            builder: (context, child) {
+              return Opacity(
+                opacity: _fadeAnimation.value,
+                child: Transform.scale(
+                  scale: _scaleAnimation.value,
                   child: Image.asset(
                     "assets/images/homescreen.png",
                     width: width,
                     height: height * 2 / 3,
+                    fit: BoxFit.fill,
                   ),
                 ),
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 40),
-                    child: Container(
-                      width: width - 80,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            theme.primaryColor,
-                            theme.primaryColorLight.withOpacity(0.8),
-                          ],
-                          begin: Alignment.centerLeft,
-                          end: Alignment.centerRight,
-                        ),
-                        borderRadius: BorderRadius.circular(10),
-                        boxShadow: [
-                          BoxShadow(
-                            color: theme.primaryColor.withOpacity(0.5),
-                            spreadRadius: 2,
-                            blurRadius: 5,
-                            offset: const Offset(0, 3),
-                          ),
-                        ],
-                      ),
-                      child: TextButton(
-                        onPressed: () {
-                          Navigator.of(context).push(MaterialPageRoute(
-                            builder: (context) => Loginscreen(),
-                          ));
-                        },
-                        style: TextButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 15),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Icon(Icons.login, color: Colors.white),
-                            const SizedBox(width: 10),
-                            Text(
-                              AppLocalizations.of(context).translate("login"),
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 18,
-                                fontFamily: fontNotifier.fontFamily,
-                                letterSpacing: 2,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+              );
+            },
+          ),
+          const SizedBox(height: 20),
+          _buildLoginButton(context, theme, width),
+          const SizedBox(height: 20),
+          _buildSignupButton(context, theme, width, isDark),
+        ],
+      ),
+    );
+  }
+  Widget _buildLoginButton(BuildContext context, ThemeData theme, double width) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 40),
+      child: Container(
+        width: width - 80,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              theme.primaryColor,
+              theme.primaryColorLight.withOpacity(0.8),
+            ],
+            begin: Alignment.centerLeft,
+            end: Alignment.centerRight,
+          ),
+          borderRadius: BorderRadius.circular(10),
+          boxShadow: [
+            BoxShadow(
+              color: theme.primaryColor.withOpacity(0.3),
+              spreadRadius: 1,
+              blurRadius: 3,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: TextButton(
+          onPressed: () {
+            Navigator.of(context).push(MaterialPageRoute(
+              builder: (context) => Loginscreen(),
+            ));
+          },
+          style: TextButton.styleFrom(
+            padding: const EdgeInsets.symmetric(vertical: 15),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.login, color: Colors.white),
+              const SizedBox(width: 10),
+              Selector<FontNotifier, String>(
+                selector: (context, fontNotifier) => fontNotifier.fontFamily,
+                builder: (context, fontFamily, child) {
+                  return Text(
+                    AppLocalizations.of(context).translate("login"),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                      fontFamily: fontFamily,
+                      letterSpacing: 2,
+                      color: Colors.white,
                     ),
-                  ),
-                  const SizedBox(height: 20),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 40),
-                    child: Container(
-                      width: width - 80,
-                      decoration: BoxDecoration(
-                        color: isDark ? theme.cardColor : Colors.white,
-                        borderRadius: BorderRadius.circular(10),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.withOpacity(0.5),
-                            spreadRadius: 2,
-                            blurRadius: 5,
-                            offset: const Offset(0, 3),
-                          ),
-                        ],
-                      ),
-                      child: TextButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => Signup()),
-                          );
-                        },
-                        style: TextButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 15),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.app_registration, color: theme.primaryColor),
-                            const SizedBox(width: 10),
-                            Text(
-                              AppLocalizations.of(context).translate("signup"),
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 18,
-                                fontFamily: fontNotifier.fontFamily, // Appliquer la police sélectionnée
-                                letterSpacing: 2,
-                                color: isDark ? Colors.white : theme.primaryColor,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+                  );
+                },
               ),
             ],
           ),
-        );
-      },
+        ),
+      ),
+    );
+  }
+  Widget _buildSignupButton(BuildContext context, ThemeData theme, double width, bool isDark) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 40),
+      child: Container(
+        width: width - 80,
+        decoration: BoxDecoration(
+          color: isDark ? theme.cardColor : Colors.white,
+          borderRadius: BorderRadius.circular(10),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.3),
+              spreadRadius: 1,
+              blurRadius: 3,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: TextButton(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => Signup()),
+            );
+          },
+          style: TextButton.styleFrom(
+            padding: const EdgeInsets.symmetric(vertical: 15),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.app_registration, color: theme.primaryColor),
+              const SizedBox(width: 10),
+              Selector<FontNotifier, String>(
+                selector: (context, fontNotifier) => fontNotifier.fontFamily,
+                builder: (context, fontFamily, child) {
+                  return Text(
+                    AppLocalizations.of(context).translate("signup"),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                      fontFamily: fontFamily,
+                      letterSpacing: 2,
+                      color: isDark ? Colors.white : theme.primaryColor,
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

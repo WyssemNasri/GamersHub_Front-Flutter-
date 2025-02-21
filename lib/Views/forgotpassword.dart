@@ -2,69 +2,66 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:gamershub/Widgets/CustomTextField.dart';
+import '../FontTheme/FontNotifier.dart';
 import '../Widgets/GardientButton.dart';
-import 'package:gamershub/languages/LanguageNotifier.dart'; // Import LanguageNotifier
 import 'package:gamershub/themes/ThemeNotifier.dart';
-
-import '../languages/app_localizations.dart'; // Import ThemeNotifier
+import '../languages/app_localizations.dart';
 
 class ForgotPassword extends StatelessWidget {
   ForgotPassword({super.key});
 
-  final TextEditingController emailController = TextEditingController(); // Added controller
+  final TextEditingController emailController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
     final height = MediaQuery.of(context).size.height;
     final width = MediaQuery.of(context).size.width;
-
-    // Get the current theme and language from providers
     final theme = Provider.of<ThemeNotifier>(context);
-    final language = Provider.of<LanguageNotifier>(context);
+    final fontFamily = Provider.of<FontNotifier>(context).fontFamily;
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: theme.currentTheme.appBarTheme.backgroundColor, // Use the theme's AppBar color
+        backgroundColor: theme.currentTheme.appBarTheme.backgroundColor,
         leading: IconButton(
           onPressed: () {
             Navigator.pop(context);
           },
           icon: Icon(Icons.arrow_back),
-          color: theme.currentTheme.iconTheme.color, // Use the theme's icon color
+          color: theme.currentTheme.iconTheme.color,
         ),
       ),
-      backgroundColor: theme.currentTheme.scaffoldBackgroundColor, // Use the theme's background color
+      backgroundColor: theme.currentTheme.scaffoldBackgroundColor,
       body: SingleChildScrollView(
         child: Column(
           children: [
             // Image
-            Image.asset("assets/images/forgotpassword.jpg"), // Ensure image exists
+            Image.asset("assets/images/forgotpassword.jpg"),
             SizedBox(height: height * 0.04),
             // Email TextField
             CustomTextField(
-              labelText: AppLocalizations.of(context).translate("email"), // Translate the label based on selected language
-              prefixIcon: Icon(Icons.email, color: theme.currentTheme.iconTheme.color), // Use theme icon color
-              controller: emailController, // Added controller to text field
-              keyboardType: TextInputType.emailAddress, // Set keyboard type for email
+              labelText: AppLocalizations.of(context).translate("email"),
+              prefixIcon: Icon(Icons.email, color: theme.currentTheme.iconTheme.color),
+              controller: emailController,
+              keyboardType: TextInputType.emailAddress,
+              fontFamily: fontFamily,
             ),
-            SizedBox(
-              height: height * 0.04,
-            ),
+            SizedBox(height: height * 0.04),
             // Send Button
             GradientButton(
-              text: AppLocalizations.of(context).translate("send"), // Translate the button text based on selected language
-              icon: Icon(Icons.send, color: theme.currentTheme.iconTheme.color), // Use theme icon color
+              text: AppLocalizations.of(context).translate("send"),
+              icon: Icon(Icons.send, color: theme.currentTheme.iconTheme.color),
               onPressed: () {
-                // Handle send button action
+
                 String email = emailController.text;
                 if (email.isNotEmpty) {
-                  // Proceed with sending the reset link
+
                   print("Send reset link to: $email");
                 } else {
                   // Handle empty input
                   print("Please enter an email.");
                 }
               },
+              fontFamily: fontFamily,
             ),
           ],
         ),

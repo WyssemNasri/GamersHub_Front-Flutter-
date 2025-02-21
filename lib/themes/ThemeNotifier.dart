@@ -9,15 +9,12 @@ class ThemeNotifier extends ChangeNotifier {
   ThemeNotifier() {
     _loadTheme();
   }
-
-  // Charger le thème sauvegardé
   void _loadTheme() async {
     final prefs = await SharedPreferences.getInstance();
-    _themeIndex = prefs.getInt('themeIndex') ?? 1;  // Si aucun thème sauvegardé, on prend sombre
+    _themeIndex = prefs.getInt('themeIndex') ?? 1;
     notifyListeners();
   }
 
-  // Sauvegarder le thème sélectionné
   Future<void> setTheme(int themeIndex) async {
     final prefs = await SharedPreferences.getInstance();
     _themeIndex = themeIndex;
@@ -32,7 +29,7 @@ class ThemeNotifier extends ChangeNotifier {
       case 2:
         return ThemeData.light().copyWith(primaryColor: Colors.pink);
       default:
-        return ThemeData.dark();  // Appliquer le thème sombre par défaut
+        return ThemeData.dark();
     }
   }
 }
