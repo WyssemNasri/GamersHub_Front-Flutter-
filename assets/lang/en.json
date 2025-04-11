@@ -42,5 +42,15 @@
   "json_decode_error": "Error parsing data",
   "token_save_error": "Error saving login token",
   "invalid_credentials": "Invalid credentials",
-  "server_error": "Server error. Please try again later"
+  "server_error": "Server error. Please try again later",
+  "searchForFriend": "Search for a friend",
+  "noUsersFound": "No users found",
+  "add": "Add",
+  "friend_requests": "Friend Requests",
+  "friend_request_accepted_successfully": "Friend request accepted successfully",
+  "friend_request_rejected_successfully": "Friend request rejected successfully",
+  "failed_to_load_friend_requests": "Failed to load friend requests",
+  "failed_to_accept_friend_request": "Failed to accept friend request",
+  "accept": "Accept",
+  "reject": "Reject"
 }

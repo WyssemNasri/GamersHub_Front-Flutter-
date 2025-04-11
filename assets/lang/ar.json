@@ -42,5 +42,15 @@
   "json_decode_error": "خطأ في تحليل البيانات",
   "token_save_error": "خطأ في حفظ رمز الدخول",
   "invalid_credentials": "بيانات الدخول غير صحيحة",
-  "server_error": "خطأ في الخادم. يرجى المحاولة مرة أخرى لاحقًا"
+  "server_error": "خطأ في الخادم. يرجى المحاولة مرة أخرى لاحقًا",
+  "searchForFriend": "ابحث عن صديق",
+  "noUsersFound": "لم يتم العثور على مستخدمين",
+  "add": "إضافة",
+  "friend_requests": "طلبات الصداقة",
+  "friend_request_accepted_successfully": "تم قبول طلب الصداقة بنجاح",
+  "friend_request_rejected_successfully": "تم رفض طلب الصداقة بنجاح",
+  "failed_to_load_friend_requests": "فشل في تحميل طلبات الصداقة",
+  "failed_to_accept_friend_request": "فشل في قبول طلب الصداقة",
+  "accept": "قبول",
+  "reject": "رفض"
 }

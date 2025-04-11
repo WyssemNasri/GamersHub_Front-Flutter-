@@ -43,4 +43,5 @@ Future<String> login(AuthModel authmodel) async {
       return "Error: $e";
     }
   }
+
 }

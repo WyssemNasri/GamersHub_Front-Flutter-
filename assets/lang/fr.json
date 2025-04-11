@@ -42,5 +42,16 @@
   "json_decode_error": "Erreur lors de l'analyse des données",
   "token_save_error": "Erreur lors de la sauvegarde du token de connexion",
   "invalid_credentials": "Identifiants invalides",
-  "server_error": "Erreur du serveur. Veuillez réessayer plus tard"
+  "server_error": "Erreur du serveur. Veuillez réessayer plus tard",
+  "searchForFriend": "Cherche un ami",
+  "noUsersFound": "Aucun utilisateur trouvé",
+  "add": "Ajouter",
+  "friend_requests": "Demandes d'amis",
+  "friend_request_accepted_successfully": "Demande d'ami acceptée avec succès",
+  "friend_request_rejected_successfully": "Demande d'ami rejetée avec succès",
+  "failed_to_load_friend_requests": "Échec du chargement des demandes d'amis",
+  "failed_to_accept_friend_request": "Échec de l'acceptation de la demande d'ami",
+  "accept": "Accepter",
+  "reject": "Rejeter"
+
 }

@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
-import 'dart:io';
-import 'dart:convert';
+import 'package:gamershub/services/file_picker.dart';
 import 'package:gamershub/services/SessionManager.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
+import 'dart:convert';
+import 'dart:io';
 
-import '../services/file_picker.dart';
+import '../Constant/constant.dart';
+import '../Views/LiveStreamInterface.dart';
 
 class StatusInputWidget extends StatefulWidget {
   final Function(String) onStatusPosted;
@@ -20,7 +22,6 @@ class _StatusInputWidgetState extends State<StatusInputWidget> {
   final TextEditingController _statusController = TextEditingController();
   File? _pickedFile;
 
-  // Utilisation de la méthode de FilePicker
   Future<void> _pickImageOrVideo() async {
     File? file = await FilePicker.pickImageFromGallery();
     if (file != null) {
@@ -35,16 +36,15 @@ class _StatusInputWidgetState extends State<StatusInputWidget> {
       String? token = await SessionManager.loadToken();
       String? userId = await SessionManager.loadId();
       if (token == null) {
-        print("Erreur : Aucun token trouvé. L'utilisateur doit se reconnecter.");
-        return;
+        throw 'Token not found, please log in again';
       }
 
       String status = _statusController.text;
-      final uri = Uri.parse('http://192.168.43.169:8080/post/statue');
-      var request = http.MultipartRequest('POST', uri);
-      request.headers['Authorization'] = 'Bearer $token';
-      Map<String, dynamic> postRequest = {"userId": userId, "description": status};
-      request.fields['post'] = jsonEncode(postRequest);
+      final uri = Uri.parse(sharePostendpoint);
+      var request = http.MultipartRequest('POST', uri)
+        ..headers['Authorization'] = 'Bearer $token'
+        ..fields['post'] = jsonEncode({"userId": userId, "description": status});
+
       if (_pickedFile != null) {
         request.files.add(await http.MultipartFile.fromPath(
           'file',
@@ -61,14 +61,14 @@ class _StatusInputWidgetState extends State<StatusInputWidget> {
         setState(() {
           _pickedFile = null;
         });
-        print("✅ Statut posté avec succès !");
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Status posted successfully!")));
       } else {
         String responseBody = await response.stream.bytesToString();
-        print('⚠️ Échec de l\'envoi du statut : ${response.statusCode}');
-        print('🔹 Réponse du serveur : $responseBody');
+        throw 'Failed to post status: ${response.statusCode}\n$responseBody';
       }
     } catch (e) {
-      print("❌ Erreur lors de l'envoi du statut : $e");
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+      print("❌ Error posting status: $e");
     }
   }
 
@@ -78,7 +78,7 @@ class _StatusInputWidgetState extends State<StatusInputWidget> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          decoration: BoxDecoration(color: Colors.grey[200], borderRadius: BorderRadius.circular(8)),
+          decoration: BoxDecoration(color: Colors.grey[200], borderRadius: BorderRadius.circular(12)),
           child: TextField(
             controller: _statusController,
             decoration: InputDecoration(
@@ -93,11 +93,17 @@ class _StatusInputWidgetState extends State<StatusInputWidget> {
         ),
         SizedBox(height: 12),
         Row(
-          mainAxisAlignment: MainAxisAlignment.start,
           children: [
             IconButton(onPressed: _pickImageOrVideo, icon: Icon(Icons.camera_alt, color: Colors.blue)),
             SizedBox(width: 10),
             IconButton(onPressed: _pickImageOrVideo, icon: Icon(Icons.photo_library, color: Colors.green)),
+            SizedBox(width: 10),
+            IconButton(
+              onPressed: () {
+                Navigator.of(context).push(MaterialPageRoute(builder: (context) => LiveStream()));
+              },
+              icon: Icon(Icons.radio_button_checked, color: Colors.red),
+            ),
             Spacer(),
             ElevatedButton(
               onPressed: _postStatus,
@@ -110,7 +116,11 @@ class _StatusInputWidgetState extends State<StatusInputWidget> {
             ),
           ],
         ),
-        if (_pickedFile != null) Image.file(_pickedFile!, width: double.infinity, height: 180, fit: BoxFit.cover),
+        if (_pickedFile != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 10),
+            child: Image.file(_pickedFile!, width: double.infinity, height: 180, fit: BoxFit.cover),
+          ),
       ],
     );
   }

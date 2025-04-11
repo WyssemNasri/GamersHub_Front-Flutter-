@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:gamershub/services/AuthService.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../Widgets/CustomTextField.dart';
 import '../Widgets/DatePickerField.dart';
 import '../Widgets/GardientButton.dart';
 import '../models/signupModel.dart';
-import '../services/authService.dart';
 import '../FontTheme/FontNotifier.dart';
 import '../languages/app_localizations.dart';
 import 'loginScreen.dart';
@@ -24,27 +24,8 @@ class _SignupState extends State<Signup> {
   bool _obscureConfirmPassword = true;
 
   Future<void> _signup(SignupModel signupModel) async {
-    try {
-      await Future.delayed(Duration(seconds: 1));
-      int statusCode = 200;
-
-      if (statusCode == 200) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => Loginscreen()),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context).translate("error_occurred"))),
-        );
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context).translate("error_occurred"))),
-      );
-    }
+    await AuthService().signUp(signupModel);
   }
-
 
   bool _validateForm() => _formKey.currentState?.validate() ?? false;
 
@@ -122,7 +103,12 @@ class _SignupState extends State<Signup> {
                       prefixIcon: const Icon(Icons.lock),
                       controller: controllers[4],
                       obscureText: _obscureConfirmPassword,
-                      validator: (value) => value != controllers[3].text ? AppLocalizations.of(context).translate("passwords_not_match") : null,
+                      validator: (value) {
+                        if (value != controllers[3].text) {
+                          return AppLocalizations.of(context).translate("passwords_not_match");
+                        }
+                        return null;
+                      },
                       fontFamily: fontNotifier.fontFamily,
                     ),
                     const SizedBox(height: 16),
@@ -138,9 +124,20 @@ class _SignupState extends State<Signup> {
                     DatePickerField(
                       controller: controllers[5],
                       labelText: AppLocalizations.of(context).translate("date_of_birth"),
-                      fontFamily: fontNotifier.fontFamily, prefixIcon: Icon(Icons.date_range),
+                      fontFamily: fontNotifier.fontFamily,
+                      prefixIcon: const Icon(Icons.date_range),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return AppLocalizations.of(context).translate("enter_date_of_birth");
+                        }
+                        try {
+                          DateFormat('yyyy-MM-dd').parse(value);
+                        } catch (e) {
+                          return AppLocalizations.of(context).translate("invalid_date_format");
+                        }
+                        return null;
+                      },
                     ),
-
                     const SizedBox(height: 16),
                     GradientButton(
                       text: AppLocalizations.of(context).translate("signup"),
@@ -166,7 +163,7 @@ class _SignupState extends State<Signup> {
                       children: [
                         Text(
                           AppLocalizations.of(context).translate("already_have_account"),
-                          style: TextStyle(fontFamily: fontNotifier.fontFamily , fontSize: 10),
+                          style: TextStyle(fontFamily: fontNotifier.fontFamily, fontSize: 10),
                         ),
                         TextButton(
                           onPressed: () => Navigator.pushReplacement(

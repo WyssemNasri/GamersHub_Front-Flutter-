@@ -24,6 +24,7 @@ class _LoginscreenState extends State<Loginscreen> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+  bool passwors_is_visible = false  ;
 
   Future<void> _login() async {
     if (!_formKey.currentState!.validate()) {
@@ -43,7 +44,7 @@ class _LoginscreenState extends State<Loginscreen> {
 
       if (responseData.containsKey('token') && responseData.containsKey('userId')) {
         String token = responseData["token"];
-        String userId = responseData["userId"];  // Récupérer l'ID utilisateur de la réponse
+        String userId = responseData["userId"];
         await SessionManager.saveToken(token);
         await SessionManager.saveUserId(userId);
 

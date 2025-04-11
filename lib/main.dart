@@ -6,6 +6,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:gamershub/themes/ThemeNotifier.dart';
 import 'package:gamershub/languages/LanguageNotifier.dart';
 import 'FontTheme/FontNotifier.dart';
+import 'Providers/MessageProvider.dart';
 import 'languages/app_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -16,6 +17,8 @@ void main() {
         ChangeNotifierProvider(create: (_) => ThemeNotifier()),
         ChangeNotifierProvider(create: (_) => LanguageNotifier()),
         ChangeNotifierProvider(create: (_) => FontNotifier()),
+        ChangeNotifierProvider(create: (_) => MessageProvider()),
+
       ],
       child: MyApp(),
     ),
@@ -28,6 +31,7 @@ class MyApp extends StatelessWidget {
     final theme = Provider.of<ThemeNotifier>(context);
     final language = Provider.of<LanguageNotifier>(context);
     final font = Provider.of<FontNotifier>(context);
+
 
     return MaterialApp(
       locale: language.locale,

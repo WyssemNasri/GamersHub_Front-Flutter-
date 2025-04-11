@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:gamershub/Views/SettingsPage.dart';
 import 'package:gamershub/Widgets/CustomFloatingActionButton.dart';
 import 'package:gamershub/services/SessionManager.dart';
-import '../Widgets/StatusInputWidget.dart';
 import 'Loginscreen.dart';
-import '../Widgets/CustomAppBar.dart';
-import '../Widgets/CustomDrawer.dart';
+import 'SearshFriend.dart';
+import 'TabViews/FriendRequestsTab.dart';
+import 'TabViews/HomeTab.dart';
+import 'TabViews/LivesTab.dart';
+import 'TabViews/NotificationsTab.dart';
+import 'TabViews/VideosTab.dart';
+import 'TabViews/ProfileTab.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -13,8 +18,21 @@ class DashboardPage extends StatefulWidget {
   _DashboardPageState createState() => _DashboardPageState();
 }
 
-class _DashboardPageState extends State<DashboardPage> {
-  String _postedStatus = '';
+class _DashboardPageState extends State<DashboardPage>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 6, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
 
   void _logout() async {
     await SessionManager.destroySession();
@@ -24,33 +42,61 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
-  void _handlePostedStatus(String status) {
-    setState(() {
-      _postedStatus = status;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(),
-      drawer: CustomDrawer(
-        userName: 'wissem nasri',
-        userEmail: 'nasriwissam6@gmail.com',
-        userProfileImage: '',
-        onLogout: _logout,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            StatusInputWidget(
-              onStatusPosted: _handlePostedStatus, // Pass the callback
-            ),
+      appBar: AppBar(
+        title: const Text(
+          "GamersHub",
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        actions: [
+          IconButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => FriendSearch()),
+              );
+            },
+            icon: const Icon(Icons.person_search_sharp),
+          ),
+          IconButton(
+            onPressed: _logout,
+            icon: const Icon(Icons.logout),
+          ),
+          IconButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => SettingsPage()),
+              );
+            },
+            icon: const Icon(Icons.settings),
+          ),
 
+        ],
+        bottom: TabBar(
+          controller: _tabController,
+          tabs: const [
+            Tab(icon: Icon(Icons.home)),
+            Tab(icon: Icon(Icons.notifications)),
+            Tab(icon: Icon(Icons.live_tv)),
+            Tab(icon: Icon(Icons.video_library)),
+            Tab(icon: Icon(Icons.person_add)),
+            Tab(icon: Icon(Icons.account_circle)), // Profile tab
           ],
         ),
+      ),
+      body: TabBarView(
+        controller: _tabController,
+        children: [
+          HomeTab(),
+          NotificationsTab(),
+          LivesTab(),
+          VideosTab(),
+          FriendSearsh(),
+          ProfileTab(),
+        ],
       ),
       floatingActionButton: CustomFloatingActionButton(),
     );

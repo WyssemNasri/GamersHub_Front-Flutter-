@@ -9,7 +9,7 @@ class ThemeNotifier extends ChangeNotifier {
   ThemeNotifier() {
     _loadTheme();
   }
-  void _loadTheme() async {
+  Future <void> _loadTheme() async {
     final prefs = await SharedPreferences.getInstance();
     _themeIndex = prefs.getInt('themeIndex') ?? 1;
     notifyListeners();
