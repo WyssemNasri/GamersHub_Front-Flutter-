@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:gamershub/Views/loginScreen.dart';
 import 'package:gamershub/Views/singup.dart';
 import 'package:provider/provider.dart';
-import '../languages/app_localizations.dart';
-import '../FontTheme/FontNotifier.dart';
+import '../Constant/app_localizations.dart';
+import '../Providers/FontNotifier.dart';
 
 class Homescreen extends StatefulWidget {
   @override

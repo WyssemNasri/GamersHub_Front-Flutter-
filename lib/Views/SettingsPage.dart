@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:gamershub/themes/ThemeNotifier.dart';
-import '../FontTheme/FontNotifier.dart';
-import '../languages/LanguageNotifier.dart';
-import '../languages/app_localizations.dart';
+import 'package:gamershub/Providers/ThemeNotifier.dart';
+import '../Providers/FontNotifier.dart';
+import '../Providers/LanguageNotifier.dart';
+import '../Constant/app_localizations.dart';
 import '../widgets/settings_card.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -19,7 +19,7 @@ class _SettingsPageState extends State<SettingsPage> {
   String _selectedLanguage = 'English';
   int _selectedFontIndex = 0;
 
-  final List<Color> themeColors = [Colors.blue, Colors.black, Colors.pink];
+  final List<Color> themeColors = [Colors.blue, Colors.black, Colors.pink, Colors.red];
   final List<String> languages = ['English', 'Français', 'العربية'];
   final List<String> fontFamilies = ['Roboto', 'GamerFont', 'GirlFont'];
 
@@ -31,14 +31,19 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Future<void> _loadPreferences() async {
     final prefs = await SharedPreferences.getInstance();
+    final language = prefs.getString('selectedLanguage') ?? 'English';
+    final fontIndex = prefs.getInt('selectedFontIndex') ?? 0;
+    final themeIndex = prefs.getInt('selectedThemeIndex') ?? 0;
+
     setState(() {
-      _selectedLanguage = prefs.getString('selectedLanguage') ?? 'English';
-      _selectedFontIndex = prefs.getInt('selectedFontIndex') ?? 0;
-      _selectedThemeIndex = prefs.getInt('selectedThemeIndex') ?? 0;
+      _selectedLanguage = language;
+      _selectedFontIndex = fontIndex;
+      _selectedThemeIndex = themeIndex;
     });
-    _applyTheme(_selectedThemeIndex);
-    _applyLanguage(_selectedLanguage);
-    _applyFontFamily(_selectedFontIndex);
+
+  _applyLanguage(language);
+    _applyFontFamily(fontIndex);
+    _applyTheme(themeIndex);
   }
 
   Future<void> _savePreferences() async {
@@ -50,13 +55,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Scaffold(
-      appBar: AppBar(
-        title: Text(AppLocalizations.of(context).translate("settings")),
-        backgroundColor: theme.appBarTheme.backgroundColor,
-      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: ListView(
@@ -80,6 +79,7 @@ class _SettingsPageState extends State<SettingsPage> {
         onChanged: (int? newValue) {
           setState(() => _selectedThemeIndex = newValue!);
           _applyTheme(newValue!);
+          _savePreferences();
         },
         items: List.generate(
           themeColors.length,

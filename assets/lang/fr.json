@@ -52,6 +52,8 @@
   "failed_to_load_friend_requests": "Échec du chargement des demandes d'amis",
   "failed_to_accept_friend_request": "Échec de l'acceptation de la demande d'ami",
   "accept": "Accepter",
-  "reject": "Rejeter"
+  "reject": "Rejeter",
+  "likes": "Mentions J’aime"
+
 
 }

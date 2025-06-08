@@ -1,20 +1,17 @@
 import 'package:stomp_dart_client/stomp_dart_client.dart';
-import 'dart:convert';
-
-import '../Constant/constant.dart';
-
 class WebSocketService {
   late StompClient _stompClient;
-  late StompFrame _stompFrame;
   Function(String)? onMessageReceived;
+  late int _userId;
 
   void connect(int userId) {
+    _userId = userId;
+
     _stompClient = StompClient(
-      config: StompConfig(
-        url: '$websocket_url?userId=$userId',
+      config: StompConfig.sockJS(
+        url: "http://192.168.43.169:8080/ws",
         onConnect: (frame) {
           print("Connected to WebSocket");
-          // Only subscribe after connection is established
           subscribeToMessages();
         },
         onWebSocketError: (error) {
@@ -26,32 +23,34 @@ class WebSocketService {
         onStompError: (frame) {
           print("STOMP error: ${frame.body}");
         },
+        heartbeatIncoming: Duration(seconds: 0),
+        heartbeatOutgoing: Duration(seconds: 0),
       ),
     );
 
-    _stompClient.activate();  // Activating the client
+    _stompClient.activate();
   }
 
   void subscribeToMessages() {
     _stompClient.subscribe(
-      destination: '/topic/messages',
+      destination: '/user/queue/messages',
       callback: (frame) {
         if (frame.body != null) {
-          String messageData = frame.body!;
-          onMessageReceived?.call(messageData);
+          onMessageReceived?.call(frame.body!);
         }
       },
     );
   }
 
-  void send(String message) {
-    if (_stompClient.connected) {
-      _stompClient.send(
+  void send(String messageJson) {
+    if (_stompClient != null && _stompClient!.connected) {
+      _stompClient!.send(
         destination: '/app/chat.sendMessage',
-        body: message,
+        body: messageJson,
       );
+      print('Message sent: $messageJson');
     } else {
-      print("Not connected to WebSocket");
+      print('WebSocket not connected');
     }
   }
 

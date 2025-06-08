@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:gamershub/services/SessionManager.dart';
 import '../Constant/constant.dart';
 import 'package:http/http.dart' as http;
-import '../models/Friend.dart';
+import '../models/Person_Model.dart';
+import '../models/Message_Model.dart';
+import '../services/MessageService.dart';
 import '_ChatPageState.dart';
 
 class Messages extends StatefulWidget {
@@ -15,8 +17,10 @@ class Messages extends StatefulWidget {
 }
 
 class _MessagesState extends State<Messages> {
+  final MessageService _messageService = MessageService();
+
   bool _isLoading = true;
-  List<Friend> _userFriends = [];
+  List<Person> _userFriends = [];
   Map<int, String> _lastMessages = {};
 
   Future<void> _fetchUserFriends() async {
@@ -35,7 +39,7 @@ class _MessagesState extends State<Messages> {
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
-      _userFriends = List<Friend>.from(data.map((friend) => Friend.fromJson(friend)));
+      _userFriends = List<Person>.from(data.map((friend) => Person.fromJson(friend)));
 
       // Fetch last messages
       await _fetchLastMessages(userId, token);
@@ -47,33 +51,23 @@ class _MessagesState extends State<Messages> {
   }
 
   Future<void> _fetchLastMessages(String userId, String token) async {
-    for (var friend in _userFriends) {
-      final response = await http.get(
-        Uri.parse('$addresse/api/messages/last/$userId'),
-        headers: {'Authorization': 'Bearer $token'},
-      );
-
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        final friendMessages = List<Map<String, dynamic>>.from(data);
-
-        // Trouver le dernier message pour cet ami
-        final lastMessage = friendMessages.firstWhere(
-                (message) => message['friendId'] == friend.id);
-
-        if (lastMessage != null) {
-          setState(() {
-            _lastMessages[friend.id] = lastMessage['lastMessage'] ?? 'No messages yet';
-          });
-        }
-      } else {
-        setState(() {
-          _lastMessages[friend.id] = "No messages yet";
-        });
+    final futures = _userFriends.map((friend) async {
+      try {
+        final Message? lastMsg = await _messageService.fetchLastMessage(
+          int.parse(userId),
+          friend.id,
+        );
+        return MapEntry(friend.id, lastMsg?.content ?? "No messages yet");
+      } catch (e) {
+        return MapEntry(friend.id, "No messages yet");
       }
-    }
-  }
+    });
 
+    final results = await Future.wait(futures);
+    setState(() {
+      _lastMessages = Map.fromEntries(results);
+    });
+  }
 
   Future<Uint8List?> _loadImageWithToken(String imageUrl) async {
     String? token = await SessionManager.loadToken();
@@ -93,16 +87,17 @@ class _MessagesState extends State<Messages> {
     _fetchUserFriends();
   }
 
-  void _navigateToChat(Friend friend) async {
+  void _navigateToChat(Person friend) async {
     String? currentUserId = await SessionManager.loadId();
     if (currentUserId != null) {
       Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) => ChatScreen(
-            senderId: int.parse(currentUserId),
-            receiverId: friend.id,
-            receiverName: friend.firstName,
+              senderId: int.parse(currentUserId),
+              receiverId: friend.id,
+              receiverName: friend.firstName,
+              friendUrlPic : friend.profilePicUrl
           ),
         ),
       );
@@ -112,25 +107,21 @@ class _MessagesState extends State<Messages> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0F0F1A),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: const Text("Messages"),
-        backgroundColor: Colors.deepPurpleAccent,
+        backgroundColor: Theme.of(context).colorScheme.primary,
         elevation: 0,
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: Colors.deepPurpleAccent))
+          ? const Center(
+        child: CircularProgressIndicator(
+          color: Colors.deepPurpleAccent,
+        ),
+      )
           : Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: 16),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Text(
-              "Recent Contacts",
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
-            ),
-          ),
           const SizedBox(height: 10),
           SizedBox(
             height: 100,
@@ -140,9 +131,9 @@ class _MessagesState extends State<Messages> {
               padding: const EdgeInsets.symmetric(horizontal: 8),
               itemBuilder: (context, i) {
                 final friend = _userFriends[i];
-                final imageUrl = friend.profilePicture != null
-                    ? '$addresse${friend.profilePicture}'
-                    : 'https://www.example.com/default-avatar.png';
+                final imageUrl = friend.profilePicUrl != null
+                    ? '$addresse${friend.profilePicUrl}'
+                    : 'assets/images/default_profile_picture.png';
 
                 return InkWell(
                   onTap: () => _navigateToChat(friend),
@@ -157,14 +148,19 @@ class _MessagesState extends State<Messages> {
                               padding: const EdgeInsets.all(3),
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                gradient: const LinearGradient(colors: [Colors.purpleAccent, Colors.blueAccent]),
+                                gradient: LinearGradient(
+                                  colors: [
+                                    Theme.of(context).colorScheme.secondary,
+                                    Theme.of(context).colorScheme.primary,
+                                  ],
+                                ),
                               ),
                               child: CircleAvatar(
                                 radius: 30,
                                 backgroundColor: Colors.grey[800],
                                 backgroundImage: snapshot.hasData
                                     ? MemoryImage(snapshot.data!)
-                                    : const NetworkImage('https://www.example.com/default-avatar.png') as ImageProvider,
+                                    : const AssetImage('assets/images/default_profile_picture.png') as ImageProvider,
                               ),
                             );
                           },
@@ -176,7 +172,9 @@ class _MessagesState extends State<Messages> {
                             friend.lastName,
                             overflow: TextOverflow.ellipsis,
                             textAlign: TextAlign.center,
-                            style: const TextStyle(fontSize: 13, color: Colors.white70),
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: Theme.of(context).colorScheme.onBackground,
+                            ),
                           ),
                         ),
                       ],
@@ -186,22 +184,14 @@ class _MessagesState extends State<Messages> {
               },
             ),
           ),
-          const SizedBox(height: 20),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Text(
-              "All Messages",
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
-            ),
-          ),
           const SizedBox(height: 8),
           Expanded(
             child: ListView.builder(
               itemCount: _userFriends.length,
               itemBuilder: (context, i) {
                 final friend = _userFriends[i];
-                final imageUrl = friend.profilePicture != null
-                    ? '$addresse${friend.profilePicture}'
+                final imageUrl = friend.profilePicUrl != null
+                    ? '$addresse${friend.profilePicUrl}'
                     : 'https://www.example.com/default-avatar.png';
 
                 return Padding(
@@ -214,7 +204,9 @@ class _MessagesState extends State<Messages> {
                       decoration: BoxDecoration(
                         color: Colors.white.withOpacity(0.05),
                         borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: Colors.purpleAccent.withOpacity(0.3)),
+                        border: Border.all(
+                          color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                        ),
                         boxShadow: [
                           BoxShadow(
                             color: Colors.black.withOpacity(0.2),
@@ -233,7 +225,7 @@ class _MessagesState extends State<Messages> {
                                 backgroundColor: Colors.grey[800],
                                 backgroundImage: snapshot.hasData
                                     ? MemoryImage(snapshot.data!)
-                                    : const NetworkImage('https://www.example.com/default-avatar.png') as ImageProvider,
+                                    : const AssetImage('assets/images/default_profile_picture.png') as ImageProvider,
                               );
                             },
                           ),
@@ -244,13 +236,18 @@ class _MessagesState extends State<Messages> {
                               children: [
                                 Text(
                                   "${friend.firstName} ${friend.lastName}",
-                                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white),
+                                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                    color: Theme.of(context).colorScheme.onBackground,
+                                  ),
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
                                   _lastMessages[friend.id] ?? 'No messages yet', // Last message
                                   overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(fontSize: 13, color: Colors.white60),
+                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: Theme.of(context).colorScheme.onSurface,
+                                  ),
                                 ),
                               ],
                             ),
@@ -263,7 +260,6 @@ class _MessagesState extends State<Messages> {
               },
             ),
           ),
-
         ],
       ),
     );

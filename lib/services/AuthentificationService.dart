@@ -1,8 +1,8 @@
 import 'dart:convert';
-import 'package:gamershub/models/AuthModel.dart';
+import 'package:gamershub/models/Authentification_Model.dart';
 import 'package:http/http.dart' as http;
 import 'package:gamershub/Constant/constant.dart';
-import 'package:gamershub/models/signupModel.dart';
+import 'package:gamershub/models/signup_Model.dart';
 
 class AuthService {
 Future<String> login(AuthModel authmodel) async {

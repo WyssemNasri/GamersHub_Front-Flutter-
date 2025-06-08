@@ -52,5 +52,7 @@
   "failed_to_load_friend_requests": "Failed to load friend requests",
   "failed_to_accept_friend_request": "Failed to accept friend request",
   "accept": "Accept",
-  "reject": "Reject"
+  "reject": "Reject",
+  "likes": "Likes"
+
 }

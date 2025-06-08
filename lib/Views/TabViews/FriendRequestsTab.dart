@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:gamershub/services/LoadImageService.dart';
 import 'package:http/http.dart' as http;
 import 'package:gamershub/Constant/constant.dart';
 import 'package:gamershub/services/SessionManager.dart';
 import 'dart:convert';
-import '../../FontTheme/FontNotifier.dart';
-import '../../languages/app_localizations.dart';
-import '../../models/FriendRequest.dart';
+import '../../Providers/FontNotifier.dart';
+import '../../Constant/app_localizations.dart';
+import '../../models/FriendRequest_Medel.dart';
 import 'package:provider/provider.dart';
-import '../../services/ImageService.dart';
-import '../../themes/ThemeNotifier.dart';
+import '../../Providers/ThemeNotifier.dart';
 
 class FriendSearsh extends StatefulWidget {
   const FriendSearsh({super.key});
@@ -18,15 +18,20 @@ class FriendSearsh extends StatefulWidget {
 }
 
 class _FriendSearshState extends State<FriendSearsh> {
+  late final LoadImageService loadImageService;
   bool _isLoading = true;
   List<FriendRequest> _friendRequests = [];
+  List<FriendRequest> _sentFriendRequests = []; // Added for sent requests
 
   @override
   void initState() {
     super.initState();
+    loadImageService = LoadImageService();
     fetchFriendRequestReceved();
+    fetchSentFriendRequests(); // Fetch sent friend requests as well
   }
 
+  // Method for fetching received friend requests
   Future<void> fetchFriendRequestReceved() async {
     String? token = await SessionManager.loadToken();
     String? id = await SessionManager.loadId();
@@ -46,6 +51,36 @@ class _FriendSearshState extends State<FriendSearsh> {
             _isLoading = false;
           });
           print("Failed to load friend requests");
+        }
+      } catch (e) {
+        setState(() {
+          _isLoading = false;
+        });
+        print("Error: $e");
+      }
+    }
+  }
+
+  // Method for fetching sent friend requests
+  Future<void> fetchSentFriendRequests() async {
+    String? token = await SessionManager.loadToken();
+    String? id = await SessionManager.loadId();
+    if (id != null) {
+      final url = Uri.parse("$sendFriendRequestEndpoint$id");
+      try {
+        final response = await http.get(url, headers: {'Authorization': 'Bearer $token'});
+
+        if (response.statusCode == 200) {
+          List<dynamic> data = json.decode(response.body);
+          setState(() {
+            _sentFriendRequests = data.map((item) => FriendRequest.fromJson(item)).toList();
+            _isLoading = false;
+          });
+        } else {
+          setState(() {
+            _isLoading = false;
+          });
+          print("Failed to load sent friend requests");
         }
       } catch (e) {
         setState(() {
@@ -126,13 +161,14 @@ class _FriendSearshState extends State<FriendSearsh> {
       body: _isLoading
           ? Center(child: CircularProgressIndicator())
           : ListView.builder(
-        itemCount: _friendRequests.length,
+        itemCount: _friendRequests.length + _sentFriendRequests.length,
         itemBuilder: (context, index) {
-          final friendRequest = _friendRequests[index];
+          final friendRequest = index < _friendRequests.length
+              ? _friendRequests[index]
+              : _sentFriendRequests[index - _friendRequests.length];
 
-          // Fetch the profile picture using ImageService
           return FutureBuilder<ImageProvider>(
-            future: ImageService.fetchImage(friendRequest.sender.profilePicUrl),
+            future: loadImageService.fetchImage("${addresse}${friendRequest.sender.profilePicUrl}"),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return Padding(
@@ -145,7 +181,7 @@ class _FriendSearshState extends State<FriendSearsh> {
                     elevation: 10,
                     child: ListTile(
                       contentPadding: EdgeInsets.symmetric(vertical: 10, horizontal: 15),
-                      leading: const CircularProgressIndicator(),  // Show loading indicator
+                      leading: const CircularProgressIndicator(),
                       title: Text(
                         "${friendRequest.sender.firstName} ${friendRequest.sender.lastName}",
                         style: TextStyle(fontWeight: FontWeight.bold, fontFamily: fontFamily),

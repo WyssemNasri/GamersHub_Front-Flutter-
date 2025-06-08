@@ -16,7 +16,7 @@ class Person {
       id: json['id'],
       firstName: json['firstName'],
       lastName: json['lastName'],
-      profilePicUrl: json['profilePicUrl'],
+      profilePicUrl: json['profilePicture'],
     );
   }
   Map<String, dynamic> toJson() {

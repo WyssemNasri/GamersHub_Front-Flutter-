@@ -1,8 +1,8 @@
-// services/user_service.dart
 import 'dart:convert';
+import 'package:gamershub/models/Person_Model.dart';
 import 'package:http/http.dart' as http;
 import '../Constant/constant.dart';
-import '../models/Friend.dart';
+import '../models/Message_Model.dart';
 import '../services/SessionManager.dart';
 
 class UserService {
@@ -23,7 +23,7 @@ class UserService {
     return null;
   }
 
-  Future<List<Friend>> fetchUserFriends() async {
+  Future<List<Person>> fetchUserFriends() async {
     final userId = await SessionManager.loadId();
     final token = await SessionManager.loadToken();
     if (userId == null || token == null) return [];
@@ -35,8 +35,12 @@ class UserService {
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
-      return List<Friend>.from(data.map((e) => Friend.fromJson(e)));
+
+
+      return List<Person>.from(data.map((e) => Person.fromJson(e)));
     }
+
     return [];
   }
+
 }

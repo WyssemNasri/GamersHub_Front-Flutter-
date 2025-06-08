@@ -3,12 +3,13 @@ import 'package:gamershub/Constant/constant.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:provider/provider.dart';
-import '../../FontTheme/FontNotifier.dart';
-import '../../languages/LanguageNotifier.dart';
-import '../../models/Person.dart';
+import '../Providers/FontNotifier.dart';
+import '../../models/Person_Model.dart';
 import '../../services/SessionManager.dart';
-import '../../themes/ThemeNotifier.dart';
-import '../languages/app_localizations.dart';
+import '../Providers/ThemeNotifier.dart';
+import '../Constant/app_localizations.dart';
+import 'package:gamershub/services/LoadImageService.dart';
+import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 class FriendSearch extends StatefulWidget {
   @override
@@ -54,10 +55,7 @@ class _FriendSearchState extends State<FriendSearch> {
   Future<void> sendInvitation(String receiverId) async {
     try {
       String? token = await SessionManager.loadToken();
-      if (token == null) {
-        throw Exception("Token non trouvé");
-      }
-
+      if (token == null) throw Exception("Token non trouvé");
       String? senderId = await SessionManager.loadId();
 
       final response = await http.post(
@@ -66,10 +64,7 @@ class _FriendSearchState extends State<FriendSearch> {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
         },
-        body: jsonEncode({
-          'senderId': senderId,
-          'receiverId': receiverId,
-        }),
+        body: jsonEncode({'senderId': senderId, 'receiverId': receiverId}),
       );
 
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -89,7 +84,6 @@ class _FriendSearchState extends State<FriendSearch> {
   Widget build(BuildContext context) {
     final themeNotifier = Provider.of<ThemeNotifier>(context);
     final fontNotifier = Provider.of<FontNotifier>(context);
-    final languageNotifier = Provider.of<LanguageNotifier>(context);
     final currentTheme = themeNotifier.currentTheme;
     final currentFont = fontNotifier.fontFamily;
 
@@ -97,7 +91,7 @@ class _FriendSearchState extends State<FriendSearch> {
       appBar: AppBar(
         leading: IconButton(
           onPressed: () => Navigator.pop(context),
-          icon: Icon(Icons.arrow_back_outlined, color: currentTheme.primaryColor),
+          icon: Icon(Icons.arrow_back_outlined, color: Colors.white),
         ),
         title: Text(
           AppLocalizations.of(context).translate("search_friends"),
@@ -106,7 +100,7 @@ class _FriendSearchState extends State<FriendSearch> {
         backgroundColor: currentTheme.appBarTheme.backgroundColor,
         actions: [
           IconButton(
-            icon: Icon(Icons.search, color: currentTheme.primaryColor),
+            icon: Icon(Icons.search, color:Colors.white),
             onPressed: () {
               showSearch(
                 context: context,
@@ -135,33 +129,44 @@ class _FriendSearchState extends State<FriendSearch> {
   }
 
   Widget _buildUserCard(Person user, String font, ThemeData theme) {
+    LoadImageService loadImageService = LoadImageService();
+
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 5),
+      padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 10),
       child: Card(
-        elevation: 3,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+        elevation: 5,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        color: theme.cardColor,
         child: ListTile(
-          contentPadding: EdgeInsets.all(10),
-          leading: CircleAvatar(
-            backgroundImage: user.profilePicUrl != null ? NetworkImage(user.profilePicUrl!) : null,
-            child: user.profilePicUrl == null ? Icon(Icons.person, color: Colors.grey[700]) : null,
+          contentPadding: EdgeInsets.all(15),
+          leading: FutureBuilder<ImageProvider>(
+            future: loadImageService.fetchImage('$addresse${user.profilePicUrl}'),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.done && snapshot.hasData) {
+                return CircleAvatar(radius: 25, backgroundImage: snapshot.data);
+              } else if (snapshot.connectionState == ConnectionState.waiting) {
+                return CircleAvatar(radius: 25, child: CircularProgressIndicator(), backgroundColor: Colors.grey);
+              } else {
+                return CircleAvatar(radius: 25, child: Icon(Icons.person, color: Colors.white), backgroundColor: Colors.grey);
+              }
+            },
           ),
           title: Text(
             "${user.firstName} ${user.lastName}",
-            style: TextStyle(fontFamily: font, fontWeight: FontWeight.bold),
+            style: TextStyle(fontFamily: font, fontWeight: FontWeight.bold, fontSize: 16),
           ),
           trailing: ElevatedButton(
             onPressed: () => sendInvitation(user.id.toString()),
             style: ElevatedButton.styleFrom(
               backgroundColor: theme.primaryColor,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-              padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 8),
+              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.person_add, size: 18, color: Colors.white),
-                SizedBox(width: 5),
+                Icon(Icons.person_add, size: 20, color: Colors.white),
+                SizedBox(width: 8),
                 Text(
                   AppLocalizations.of(context).translate("send_invitation"),
                   style: TextStyle(fontFamily: font, color: Colors.white),
@@ -179,38 +184,80 @@ class FriendSearchDelegate extends SearchDelegate<Person> {
   final List<Person> allUsers;
   final Function(String) sendInvitation;
   final String font;
+  late stt.SpeechToText _speech;
+  bool _isListening = false;
 
-  FriendSearchDelegate(this.allUsers, this.sendInvitation, this.font);
+  FriendSearchDelegate(this.allUsers, this.sendInvitation, this.font) {
+    _speech = stt.SpeechToText();
+  }
 
   @override
   List<Widget> buildActions(BuildContext context) {
-    return [IconButton(icon: Icon(Icons.clear), onPressed: () => query = '')];
+    return [
+      IconButton(
+        icon: Icon(Icons.mic),
+        onPressed: () async {
+          if (!_isListening) {
+            bool available = await _speech.initialize();
+            if (available) {
+              _isListening = true;
+              _speech.listen(onResult: (val) {
+                query = val.recognizedWords;
+              });
+            }
+          } else {
+            _speech.stop();
+            _isListening = false;
+          }
+        },
+      ),
+      IconButton(
+        icon: Icon(Icons.clear),
+        onPressed: () => query = '',
+      ),
+    ];
   }
 
   @override
   Widget buildLeading(BuildContext context) {
-    return IconButton(icon: Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context));
+    return IconButton(
+      icon: Icon(Icons.arrow_back),
+      onPressed: () => close(context, Person(id: 0, firstName: '', lastName: '')),
+    );
   }
 
   @override
-  Widget buildResults(BuildContext context) {
-    return buildSuggestions(context);
-  }
+  Widget buildResults(BuildContext context) => buildSuggestions(context);
 
   @override
   Widget buildSuggestions(BuildContext context) {
-    List<Person> filteredUsers = allUsers
-        .where((user) => user.firstName.toLowerCase().contains(query.toLowerCase()) || user.lastName.toLowerCase().contains(query.toLowerCase()))
+    List<Person> filtered = allUsers
+        .where((user) => user.firstName.toLowerCase().contains(query.toLowerCase()) ||
+        user.lastName.toLowerCase().contains(query.toLowerCase()))
         .toList();
 
     return ListView.builder(
-      itemCount: filteredUsers.length,
+      itemCount: filtered.length,
       itemBuilder: (context, index) {
-        Person user = filteredUsers[index];
+        final user = filtered[index];
         return ListTile(
           title: Text("${user.firstName} ${user.lastName}", style: TextStyle(fontFamily: font)),
-          leading: CircleAvatar(backgroundImage: user.profilePicUrl != null ? NetworkImage(user.profilePicUrl!) : null),
-          trailing: IconButton(icon: Icon(Icons.person_add), onPressed: () => sendInvitation(user.id.toString())),
+          leading: FutureBuilder<ImageProvider>(
+            future: LoadImageService().fetchImage('$addresse${user.profilePicUrl}'),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.done && snapshot.hasData) {
+                return CircleAvatar(radius: 20, backgroundImage: snapshot.data);
+              } else if (snapshot.connectionState == ConnectionState.waiting) {
+                return CircleAvatar(radius: 20, child: CircularProgressIndicator(), backgroundColor: Colors.grey);
+              } else {
+                return CircleAvatar(radius: 20, child: Icon(Icons.person, color: Colors.white), backgroundColor: Colors.grey);
+              }
+            },
+          ),
+          trailing: IconButton(
+            icon: Icon(Icons.person_add),
+            onPressed: () => sendInvitation(user.id.toString()),
+          ),
         );
       },
     );

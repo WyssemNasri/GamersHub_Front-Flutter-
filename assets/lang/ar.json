@@ -52,5 +52,7 @@
   "failed_to_load_friend_requests": "فشل في تحميل طلبات الصداقة",
   "failed_to_accept_friend_request": "فشل في قبول طلب الصداقة",
   "accept": "قبول",
-  "reject": "رفض"
+  "reject": "رفض",
+  "likes": "الإعجابات"
+
 }

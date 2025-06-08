@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:gamershub/services/AuthService.dart';
+import 'package:gamershub/services/AuthentificationService.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../Widgets/CustomTextField.dart';
 import '../Widgets/DatePickerField.dart';
 import '../Widgets/GardientButton.dart';
-import '../models/signupModel.dart';
-import '../FontTheme/FontNotifier.dart';
-import '../languages/app_localizations.dart';
+import '../models/signup_Model.dart';
+import '../Providers/FontNotifier.dart';
+import '../Constant/app_localizations.dart';
 import 'loginScreen.dart';
 
 class Signup extends StatefulWidget {

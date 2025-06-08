@@ -153,4 +153,55 @@ class AppThemes {
       elevation: 6,
     ),
   );
+
+  static final ThemeData redTheme = ThemeData(
+    brightness: Brightness.light,
+    primaryColor: Colors.red,
+    colorScheme: ColorScheme.light(
+      primary: Colors.red,
+      secondary: Colors.redAccent,
+      surface: Colors.red[50]!,
+      background: Colors.red[100]!,
+    ),
+    scaffoldBackgroundColor: Colors.red[100],
+    appBarTheme: AppBarTheme(
+      backgroundColor: Colors.red,
+      foregroundColor: Colors.white,
+      elevation: 4,
+      shadowColor: Colors.red.withOpacity(0.5),
+    ),
+    textTheme: const TextTheme(
+      bodyMedium: TextStyle(color: Colors.black87, fontSize: 16),
+      headlineMedium: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
+    ),
+    buttonTheme: ButtonThemeData(
+      buttonColor: Colors.red,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+    ),
+    iconTheme: const IconThemeData(
+      color: Colors.white,
+    ),
+    inputDecorationTheme: InputDecorationTheme(
+      filled: true,
+      fillColor: Colors.red[50],
+      hintStyle: TextStyle(color: Colors.red[400]),
+      enabledBorder: OutlineInputBorder(
+        borderSide: const BorderSide(color: Colors.redAccent),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderSide: const BorderSide(color: Colors.red),
+        borderRadius: BorderRadius.circular(10),
+      ),
+    ),
+    cardTheme: CardTheme(
+      color: Colors.red[50],
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+    ),
+    floatingActionButtonTheme: const FloatingActionButtonThemeData(
+      backgroundColor: Colors.red,
+      elevation: 6,
+    ),
+  );
 }

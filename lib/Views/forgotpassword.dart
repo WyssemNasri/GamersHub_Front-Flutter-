@@ -2,10 +2,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:gamershub/Widgets/CustomTextField.dart';
-import '../FontTheme/FontNotifier.dart';
+import '../Providers/FontNotifier.dart';
 import '../Widgets/GardientButton.dart';
-import 'package:gamershub/themes/ThemeNotifier.dart';
-import '../languages/app_localizations.dart';
+import 'package:gamershub/Providers/ThemeNotifier.dart';
+import '../Constant/app_localizations.dart';
 
 class ForgotPassword extends StatelessWidget {
   ForgotPassword({super.key});

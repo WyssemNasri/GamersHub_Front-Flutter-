@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../FontTheme/FontNotifier.dart';
+import '../Providers/FontNotifier.dart';
 
 class SettingsCard extends StatelessWidget {
   final String title;

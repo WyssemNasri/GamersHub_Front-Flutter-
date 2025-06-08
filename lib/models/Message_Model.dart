@@ -1,4 +1,5 @@
 class Message {
+
   final int senderId;
   final int receiverId;
   final String content;

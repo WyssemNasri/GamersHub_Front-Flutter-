@@ -1,17 +1,17 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:gamershub/Views/Dashbord.dart';
+import 'package:gamershub/Views/Dashbord_View.dart';
 import 'package:gamershub/Views/singup.dart';
 import 'package:gamershub/services/SessionManager.dart';
 import 'package:gamershub/Widgets/CustomTextField.dart';
 import 'package:gamershub/Widgets/GardientButton.dart';
-import 'package:gamershub/languages/app_localizations.dart';
-import 'package:gamershub/services/AuthService.dart';
 import 'package:gamershub/Views/forgotpassword.dart';
 import 'package:provider/provider.dart';
 
-import '../FontTheme/FontNotifier.dart';
-import '../models/AuthModel.dart';
+import '../Constant/app_localizations.dart';
+import '../Providers/FontNotifier.dart';
+import '../models/Authentification_Model.dart';
+import '../services/AuthentificationService.dart';
 
 class Loginscreen extends StatefulWidget {
   const Loginscreen({super.key});
